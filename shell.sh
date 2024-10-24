@@ -8,6 +8,8 @@
 #
 #####################
 
+set -xe
+
 gitcheckout() {
 	git clone https://github.com/LondheShubham153/django-notes-app.git
 
@@ -16,8 +18,8 @@ gitcheckout() {
 requirements() {
         sudo apt-get update -y
 	sudo install docker.io -y
-        sudo apt install nginx -y
-
+        sudo apt install nginx 
+        sudo apt install docker-compose -y
 }
 
 service_start() {
@@ -29,18 +31,35 @@ service_start() {
 
 
 contenarised() {
-	docker build -t notes-app .
-	docker run -d -p 8000:8000 notes-app:latest
+        sudo chown $USER /var/run/docker.sock 
 
+	docker build -t notes-app .
+	#docker run -d -p 8000:8000 notes-app:latest
+        docker-compose up -d
 }
 
-gitcheckout
+echo "*********** Deployment start ***********"
+if ! gitcheckout; then
+	echo "code already exists in folder"
+	cd django-notes-app
+fi
 
-requirements
+if ! requirements; then
+        echo " need to look"
+	exit 1
+
+fi
 
 
-service_start
+if ! service_start; then 
+	echo "service not started"
+	exit 1
 
+fi
 
+if ! contenarised; then 
+	echo "app not running"
+	exit 1
+fi
 
-contenarised
+echo "************ Deployment Done*********"
